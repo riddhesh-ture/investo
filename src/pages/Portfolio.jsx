@@ -1,12 +1,9 @@
-import {Typography,Box} from '@mui/material';
+import * as React from 'react';
 
-function Portfolio() {
+export default function Portfolio() {
   return (
-    <Box>
-        <Typography variant="h4">Portfolio</Typography>
-        <Typography variant="body1">This is your portfolio</Typography>
-    </Box>
+    <React.Fragment>
+      {/* Your portfolio page content */}
+    </React.Fragment>
   );
-};
-
-export default Portfolio;
+}

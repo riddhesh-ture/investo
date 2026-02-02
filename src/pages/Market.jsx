@@ -1,13 +1,9 @@
-import { Box, Typography } from '@mui/material'
-import React from 'react'
+import * as React from 'react';
 
-function Market() {
+export default function Market() {
   return (
-    <Box>
-        <Typography variant='h4'>Market Data</Typography>
-        <Typography variant='body1'>This is the live market, search for stocks, mf, crypto here</Typography>
-    </Box>
-  )
+    <React.Fragment>
+      {/* Your market page content */}
+    </React.Fragment>
+  );
 }
-
-export default Market
