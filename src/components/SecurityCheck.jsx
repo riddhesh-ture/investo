@@ -1,137 +1,91 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 /**
- * Full-page Cloudflare Turnstile verification screen
- * Styled to look like Cloudflare's managed challenge page (dark theme)
+ * Security verification interstitial — shows a Cloudflare-style
+ * "Performing security verification" page for ~2.5s on first visit.
  * 
- * Once verified, stores token in sessionStorage so user isn't challenged again
- * during the same browser session.
+ * If VITE_TURNSTILE_SITE_KEY is set, Cloudflare Turnstile runs silently
+ * in the background (no visible widget). Otherwise it's purely visual.
  * 
- * Requires VITE_TURNSTILE_SITE_KEY env var.
+ * Cached in sessionStorage — only shows once per browser session.
  */
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 const SESSION_KEY = 'investo_verified';
 
 export default function SecurityCheck({ children }) {
-    const [verified, setVerified] = useState(false);
-    const [checking, setChecking] = useState(true);
-    const [needsInteraction, setNeedsInteraction] = useState(false);
+    const [verified, setVerified] = useState(() => {
+        return sessionStorage.getItem(SESSION_KEY) === 'true';
+    });
     const turnstileRef = useRef(null);
-    const widgetRendered = useRef(false);
 
-    // Check if already verified this session
     useEffect(() => {
-        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-            setVerified(true);
-            setChecking(false);
-            return;
-        }
+        if (verified) return;
 
-        // If no site key configured, skip verification
-        if (!SITE_KEY) {
-            setVerified(true);
-            setChecking(false);
-            return;
-        }
-
-        setChecking(false);
-    }, []);
-
-    // Load Turnstile script and render widget
-    useEffect(() => {
-        if (verified || checking || !SITE_KEY || widgetRendered.current) return;
-
-        // Timeout fallback — auto-pass after 5 seconds if Turnstile doesn't complete
-        const timeout = setTimeout(() => {
+        // Auto-pass after 2.5 seconds (visual delay)
+        const timer = setTimeout(() => {
             sessionStorage.setItem(SESSION_KEY, 'true');
             setVerified(true);
-        }, 5000);
+        }, 2500);
 
-        const script = document.createElement('script');
-        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
-        script.async = true;
+        // If Turnstile key exists, run it silently in the background
+        if (SITE_KEY) {
+            const script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
+            script.async = true;
+            window.onTurnstileLoad = () => {
+                if (turnstileRef.current) {
+                    window.turnstile.render(turnstileRef.current, {
+                        sitekey: SITE_KEY,
+                        theme: 'dark',
+                        size: 'invisible',
+                        callback: () => {
+                            clearTimeout(timer);
+                            setTimeout(() => {
+                                sessionStorage.setItem(SESSION_KEY, 'true');
+                                setVerified(true);
+                            }, 600);
+                        },
+                    });
+                }
+            };
+            document.head.appendChild(script);
+        }
 
-        window.onTurnstileLoad = () => {
-            if (turnstileRef.current && !widgetRendered.current) {
-                widgetRendered.current = true;
-                window.turnstile.render(turnstileRef.current, {
-                    sitekey: SITE_KEY,
-                    theme: 'dark',
-                    appearance: 'interaction-only',
-                    'before-interactive-callback': () => {
-                        // Turnstile needs user interaction — show the widget
-                        setNeedsInteraction(true);
-                    },
-                    'after-interactive-callback': () => {
-                        setNeedsInteraction(false);
-                    },
-                    callback: () => {
-                        clearTimeout(timeout);
-                        setNeedsInteraction(false);
-                        setTimeout(() => {
-                            sessionStorage.setItem(SESSION_KEY, 'true');
-                            setVerified(true);
-                        }, 800);
-                    },
-                });
-            }
-        };
+        return () => clearTimeout(timer);
+    }, [verified]);
 
-        document.head.appendChild(script);
-
-        return () => {
-            clearTimeout(timeout);
-            delete window.onTurnstileLoad;
-        };
-    }, [verified, checking]);
-
-    if (checking) return null;
     if (verified) return children;
 
-    // Generate a fake Ray ID for aesthetics
     const rayId = Math.random().toString(16).slice(2, 14);
 
     return (
         <div style={styles.overlay}>
             <div style={styles.container}>
-                <div style={styles.card}>
-                    <h1 style={styles.siteName}>inv3sto.netlify.app</h1>
-                    <h2 style={styles.heading}>Performing security verification</h2>
-                    <p style={styles.description}>
-                        This website uses a security service to protect against malicious bots.
-                        This page is displayed while the website verifies you are not a bot.
-                    </p>
-
-                    {/* Turnstile widget container + spinner */}
-                    <div style={styles.widgetArea}>
-                        <div ref={turnstileRef} style={needsInteraction ? styles.turnstileVisible : styles.turnstileHidden}></div>
-                        {!needsInteraction && (
-                            <div style={styles.spinnerContainer}>
-                                <div style={styles.spinner}></div>
-                            </div>
-                        )}
-                    </div>
+                <h1 style={styles.siteName}>inv3sto.netlify.app</h1>
+                <h2 style={styles.heading}>Performing security verification</h2>
+                <p style={styles.description}>
+                    This website uses a security service to protect against malicious bots.
+                    This page is displayed while the website verifies you are not a bot.
+                </p>
+                <div style={styles.spinnerContainer}>
+                    <div style={styles.spinner}></div>
                 </div>
-
-                {/* Footer */}
-                <div style={styles.footer}>
-                    <div style={styles.divider}></div>
-                    <p style={styles.rayId}>Ray ID: {rayId}</p>
-                    <p style={styles.branding}>
-                        Performance and Security by{' '}
-                        <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
-                            Cloudflare
-                        </a>
-                        {' | '}
-                        <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" style={styles.link}>
-                            Privacy
-                        </a>
-                    </p>
-                </div>
+                {/* Hidden Turnstile container */}
+                <div ref={turnstileRef} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}></div>
             </div>
 
-            {/* Spinner animation */}
+            <div style={styles.footer}>
+                <div style={styles.divider}></div>
+                <p style={styles.footerText}>Ray ID: {rayId}</p>
+                <p style={styles.footerText}>
+                    Performance and Security by{' '}
+                    <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" style={styles.link}>Cloudflare</a>
+                    {' | '}
+                    <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" style={styles.link}>Privacy</a>
+                </p>
+            </div>
+
             <style>{`
                 @keyframes cf-spin {
                     0% { transform: rotate(0deg); }
@@ -145,10 +99,7 @@ export default function SecurityCheck({ children }) {
 const styles = {
     overlay: {
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        inset: 0,
         backgroundColor: '#000000',
         zIndex: 99999,
         display: 'flex',
@@ -160,50 +111,29 @@ const styles = {
         width: '100%',
         maxWidth: 600,
         padding: '0 24px',
-        textAlign: 'left',
-    },
-    card: {
-        padding: '40px 0',
     },
     siteName: {
         color: '#ffffff',
-        fontSize: '36px',        // ← change site name size here
+        fontSize: '32px',       // ← site name size
         fontWeight: 700,
         margin: '0 0 12px 0',
         letterSpacing: '-0.5px',
     },
     heading: {
         color: '#ffffff',
-        fontSize: '22px',        // ← change heading size here
+        fontSize: '22px',       // ← heading size
         fontWeight: 600,
         margin: '0 0 10px 0',
     },
     description: {
         color: '#cccccc',
-        fontSize: '16px',        // ← change description size here
+        fontSize: '16px',       // ← description size
         lineHeight: '1.6',
         margin: '0 0 32px 0',
-    },
-    widgetArea: {
-        position: 'relative',
-        minHeight: 65,
-    },
-    turnstileHidden: {
-        position: 'absolute',
-        opacity: 0,
-        pointerEvents: 'none',
-        width: 0,
-        height: 0,
-        overflow: 'hidden',
-    },
-    turnstileVisible: {
-        marginBottom: 16,
     },
     spinnerContainer: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        marginTop: 8,
     },
     spinner: {
         width: 28,
@@ -223,17 +153,14 @@ const styles = {
         height: 1,
         backgroundColor: 'rgba(255,255,255,0.1)',
         marginBottom: 16,
+        maxWidth: 600,
+        marginLeft: 'auto',
+        marginRight: 'auto',
     },
-    rayId: {
+    footerText: {
         color: '#888888',
         fontSize: '12px',
         margin: '0 0 4px 0',
-        textAlign: 'center',
-    },
-    branding: {
-        color: '#888888',
-        fontSize: '12px',
-        margin: 0,
         textAlign: 'center',
     },
     link: {
