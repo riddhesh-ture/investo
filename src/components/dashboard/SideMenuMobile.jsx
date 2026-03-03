@@ -10,8 +10,23 @@ import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
 import CardAlert from './CardAlert';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function SideMenuMobile({ open, toggleDrawer }) {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Guest';
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/signin');
+  };
+
   return (
     <Drawer
       anchor="right"
@@ -38,12 +53,13 @@ function SideMenuMobile({ open, toggleDrawer }) {
           >
             <Avatar
               sizes="small"
-              alt="Riley Carter"
-              src="/static/images/avatar/7.jpg"
-              sx={{ width: 24, height: 24 }}
-            />
+              alt={displayName}
+              sx={{ width: 24, height: 24, bgcolor: 'primary.main', fontSize: '0.75rem' }}
+            >
+              {displayName.charAt(0).toUpperCase()}
+            </Avatar>
             <Typography component="p" variant="h6">
-              Riley Carter
+              {displayName}
             </Typography>
           </Stack>
           <MenuButton showBadge>
@@ -57,7 +73,12 @@ function SideMenuMobile({ open, toggleDrawer }) {
         </Stack>
         <CardAlert />
         <Stack sx={{ p: 2 }}>
-          <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<LogoutRoundedIcon />}
+            onClick={handleLogout}
+          >
             Logout
           </Button>
         </Stack>

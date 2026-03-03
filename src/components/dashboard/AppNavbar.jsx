@@ -7,11 +7,10 @@ import MuiToolbar from '@mui/material/Toolbar';
 import { tabsClasses } from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import SideMenuMobile from './SideMenuMobile';
 import MenuButton from './MenuButton';
 import ColorModeIconDropdown from '../../shared-theme/ColorModeIconDropdown';
-import UnifiedSearch from './UnifiedSearch';
 
 const Toolbar = styled(MuiToolbar)({
   width: '100%',
@@ -64,12 +63,11 @@ export default function AppNavbar() {
             spacing={1}
             sx={{ justifyContent: 'center', mr: 'auto' }}
           >
-            <CustomIcon />
+            <InvestoIcon />
             <Typography variant="h4" component="h1" sx={{ color: 'text.primary' }}>
-              Dashboard
+              Investo
             </Typography>
           </Stack>
-          <UnifiedSearch />
           <ColorModeIconDropdown />
           <MenuButton aria-label="menu" onClick={toggleDrawer(true)}>
             <MenuRoundedIcon />
@@ -81,7 +79,7 @@ export default function AppNavbar() {
   );
 }
 
-export function CustomIcon() {
+export function InvestoIcon() {
   return (
     <Box
       sx={{
@@ -101,7 +99,7 @@ export function CustomIcon() {
         boxShadow: 'inset 0 2px 5px rgba(255, 255, 255, 0.3)',
       }}
     >
-      <DashboardRoundedIcon color="inherit" sx={{ fontSize: '1rem' }} />
+      <TrendingUpRoundedIcon color="inherit" sx={{ fontSize: '1rem' }} />
     </Box>
   );
 }

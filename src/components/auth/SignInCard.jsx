@@ -7,12 +7,16 @@ import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import MuiLink from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import ForgotPassword from './ForgotPassword';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
+import { GoogleIcon, SitemarkIcon } from './CustomIcons';
+import { useAuth } from '../../context/AuthContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -38,6 +42,11 @@ export default function SignInCard() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const [authError, setAuthError] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const { signIn, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -47,22 +56,9 @@ export default function SignInCard() {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
-
   const validateInputs = () => {
     const email = document.getElementById('email');
     const password = document.getElementById('password');
-
     let isValid = true;
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
@@ -82,8 +78,36 @@ export default function SignInCard() {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
-
     return isValid;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    if (!validateInputs()) return;
+
+    const data = new FormData(event.currentTarget);
+    const email = data.get('email');
+    const password = data.get('password');
+
+    setLoading(true);
+    try {
+      await signIn(email, password);
+      navigate('/home');
+    } catch (err) {
+      setAuthError(err.message || 'Sign in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      navigate('/home');
+    } catch (err) {
+      setAuthError(err.message || 'Google sign in failed.');
+    }
   };
 
   return (
@@ -98,6 +122,11 @@ export default function SignInCard() {
       >
         Sign in
       </Typography>
+      {authError && (
+        <Alert severity="error" sx={{ width: '100%' }}>
+          {authError}
+        </Alert>
+      )}
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -124,7 +153,7 @@ export default function SignInCard() {
         <FormControl>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <FormLabel htmlFor="password">Password</FormLabel>
-            <Link
+            <MuiLink
               component="button"
               type="button"
               onClick={handleClickOpen}
@@ -132,7 +161,7 @@ export default function SignInCard() {
               sx={{ alignSelf: 'baseline' }}
             >
               Forgot your password?
-            </Link>
+            </MuiLink>
           </Box>
           <TextField
             error={passwordError}
@@ -142,7 +171,6 @@ export default function SignInCard() {
             type="password"
             id="password"
             autoComplete="current-password"
-            autoFocus
             required
             fullWidth
             variant="outlined"
@@ -154,22 +182,25 @@ export default function SignInCard() {
           label="Remember me"
         />
         <ForgotPassword open={open} handleClose={handleClose} />
-        <Button type="submit" fullWidth variant="contained" onClick={validateInputs}>
-          Sign in
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          disabled={loading}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+        >
+          {loading ? 'Signing in...' : 'Sign in'}
         </Button>
         <Typography sx={{ textAlign: 'center' }}>
           Don&apos;t have an account?{' '}
-          <span>
-            <Link
-              href="/material-ui/getting-started/templates/sign-in/"
-              variant="body2"
-              sx={{ alignSelf: 'center' }}
-              component={Link}
-              to="/signup"
-            >
-              Sign up
-            </Link>
-          </span>
+          <MuiLink
+            component={RouterLink}
+            to="/signup"
+            variant="body2"
+            sx={{ alignSelf: 'center' }}
+          >
+            Sign up
+          </MuiLink>
         </Typography>
       </Box>
       <Divider>or</Divider>
@@ -177,12 +208,11 @@ export default function SignInCard() {
         <Button
           fullWidth
           variant="outlined"
-          onClick={() => alert('Sign in with Google')}
+          onClick={handleGoogleSignIn}
           startIcon={<GoogleIcon />}
         >
           Sign in with Google
         </Button>
-        
       </Box>
     </Card>
   );

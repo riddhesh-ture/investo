@@ -2,37 +2,60 @@ import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import InputLabel from '@mui/material/InputLabel';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import visuallyHidden from '@mui/utils/visuallyHidden';
 import { styled } from '@mui/material/styles';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
+import AccountBalanceRoundedIcon from '@mui/icons-material/AccountBalanceRounded';
+import CurrencyBitcoinRoundedIcon from '@mui/icons-material/CurrencyBitcoinRounded';
+import PieChartRoundedIcon from '@mui/icons-material/PieChartRounded';
 
-const StyledBox = styled('div')(({ theme }) => ({
-  alignSelf: 'center',
-  width: '100%',
-  height: 400,
-  marginTop: theme.spacing(8),
-  borderRadius: (theme.vars || theme).shape.borderRadius,
-  outline: '6px solid',
-  outlineColor: 'hsla(220, 25%, 80%, 0.2)',
+const GlowChip = styled(Box)(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '6px 16px',
+  borderRadius: 20,
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  color: theme.palette.primary.main,
+  backgroundColor: theme.vars
+    ? `rgba(${theme.vars.palette.primary.mainChannel} / 0.08)`
+    : `${theme.palette.primary.main}14`,
   border: '1px solid',
-  borderColor: (theme.vars || theme).palette.grey[200],
-  boxShadow: '0 0 12px 8px hsla(220, 25%, 80%, 0.2)',
-/*   backgroundImage: `url(${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
- */  backgroundSize: 'cover',
-  [theme.breakpoints.up('sm')]: {
-    marginTop: theme.spacing(10),
-    height: 700,
-  },
-  ...theme.applyStyles('dark', {
-    boxShadow: '0 0 24px 12px hsla(210, 100%, 25%, 0.2)',
-/*     backgroundImage: `url(${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
- */    outlineColor: 'hsla(220, 20%, 42%, 0.1)',
-    borderColor: (theme.vars || theme).palette.grey[700],
-  }),
+  borderColor: theme.vars
+    ? `rgba(${theme.vars.palette.primary.mainChannel} / 0.2)`
+    : `${theme.palette.primary.main}33`,
 }));
+
+const AssetIcon = styled(Box)(({ theme }) => ({
+  width: 56,
+  height: 56,
+  borderRadius: 16,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: theme.vars
+    ? `rgba(${theme.vars.palette.primary.mainChannel} / 0.06)`
+    : `${theme.palette.primary.main}0F`,
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: `0 8px 24px ${theme.vars
+      ? `rgba(${theme.vars.palette.primary.mainChannel} / 0.15)`
+      : `${theme.palette.primary.main}26`
+      }`,
+  },
+}));
+
+const assetClasses = [
+  { icon: <ShowChartRoundedIcon />, label: 'Stocks', color: 'hsl(210, 98%, 48%)' },
+  { icon: <AccountBalanceRoundedIcon />, label: 'Mutual Funds', color: 'hsl(130, 60%, 45%)' },
+  { icon: <CurrencyBitcoinRoundedIcon />, label: 'Crypto', color: 'hsl(40, 95%, 55%)' },
+  { icon: <PieChartRoundedIcon />, label: 'Gold & More', color: 'hsl(15, 85%, 55%)' },
+];
 
 export default function Hero() {
   return (
@@ -59,93 +82,128 @@ export default function Hero() {
         }}
       >
         <Stack
-          spacing={2}
+          spacing={3}
           useFlexGap
-          sx={{ alignItems: 'center', width: { xs: '100%', sm: '70%' } }}
+          sx={{ alignItems: 'center', width: { xs: '100%', sm: '80%', md: '65%' } }}
         >
+          <GlowChip>✦ Your wealth, one dashboard</GlowChip>
+
           <Typography
             variant="h1"
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
+              flexDirection: 'column',
               alignItems: 'center',
-              fontSize: 'clamp(3rem, 10vw, 3.5rem)',
+              fontSize: 'clamp(2.5rem, 8vw, 3.5rem)',
+              fontWeight: 800,
+              textAlign: 'center',
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
             }}
           >
-            Our&nbsp;latest&nbsp;
+            Track every asset.
             <Typography
               component="span"
               variant="h1"
               sx={(theme) => ({
                 fontSize: 'inherit',
-                color: 'primary.main',
+                fontWeight: 'inherit',
+                letterSpacing: 'inherit',
+                background: 'linear-gradient(135deg, hsl(210, 98%, 48%) 0%, hsl(130, 60%, 45%) 50%, hsl(40, 95%, 55%) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
                 ...theme.applyStyles('dark', {
-                  color: 'primary.light',
+                  background: 'linear-gradient(135deg, hsl(210, 100%, 65%) 0%, hsl(130, 70%, 55%) 50%, hsl(40, 100%, 65%) 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
                 }),
               })}
             >
-              products
+              Analyse deeper.
             </Typography>
           </Typography>
+
           <Typography
             sx={{
               textAlign: 'center',
               color: 'text.secondary',
-              width: { sm: '100%', md: '80%' },
+              fontSize: { xs: '1rem', sm: '1.15rem' },
+              maxWidth: 540,
+              lineHeight: 1.7,
             }}
           >
-            Explore our cutting-edge dashboard, delivering high-quality solutions
-            tailored to your needs. Elevate your experience with top-tier features
-            and services.
+            Stocks, mutual funds, crypto, gold, real estate — all in one place.
+            Deep analytics with XIRR, sector breakdowns, and portfolio intelligence.
+            Built for investors who think long-term.
           </Typography>
+
+          {/* Asset class icons */}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: 'center', mt: 1 }}
+          >
+            {assetClasses.map(({ icon, label, color }) => (
+              <Stack key={label} alignItems="center" spacing={0.5}>
+                <AssetIcon sx={{ '& svg': { color, fontSize: 28 } }}>
+                  {icon}
+                </AssetIcon>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                  {label}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            spacing={1}
+            spacing={1.5}
             useFlexGap
-            sx={{ pt: 2, width: { xs: '100%', sm: '350px' } }}
+            sx={{ pt: 2, width: { xs: '100%', sm: 'auto' } }}
           >
-            <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-              Email
-            </InputLabel>
-            <TextField
-              id="email-hero"
-              hiddenLabel
-              size="small"
-              variant="outlined"
-              aria-label="Enter your email address"
-              placeholder="Your email address"
-              fullWidth
-              slotProps={{
-                htmlInput: {
-                  autoComplete: 'off',
-                  'aria-label': 'Enter your email address',
-                },
-              }}
-            />
             <Button
               variant="contained"
               color="primary"
-              size="small"
-              sx={{ minWidth: 'fit-content' }}
-              component={Link} 
-              to="/home"
+              size="large"
+              component={Link}
+              to="/signup"
+              sx={{
+                px: 4,
+                py: 1.5,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1rem',
+              }}
             >
-              Start now
+              Get Started — It's Free
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="large"
+              component={Link}
+              to="/home"
+              sx={{
+                px: 4,
+                py: 1.5,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1rem',
+              }}
+            >
+              Explore Dashboard
             </Button>
           </Stack>
+
           <Typography
             variant="caption"
-            color="text.secondary"
-            sx={{ textAlign: 'center' }}
+            sx={{ color: 'text.disabled', textAlign: 'center', mt: 1 }}
           >
-            By clicking &quot;Start now&quot; you agree to our&nbsp;
-            <Link href="#" color="primary">
-              Terms & Conditions
-            </Link>
-            .
+            No credit card required · Free forever for personal use
           </Typography>
         </Stack>
-        <StyledBox id="image" />
       </Container>
     </Box>
   );

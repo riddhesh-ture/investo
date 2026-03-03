@@ -54,23 +54,14 @@ export default function AppAppBar() {
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
             <Sitemark />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-              <Button variant="text" color="info" size="small">
+              <Button variant="text" color="info" size="small" href="#features">
                 Features
               </Button>
-              <Button variant="text" color="info" size="small">
-                Testimonials
+              <Button variant="text" color="info" size="small" href="#highlights">
+                Why Investo?
               </Button>
-              <Button variant="text" color="info" size="small">
-                Highlights
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Pricing
-              </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
+              <Button variant="text" color="info" size="small" href="#faq">
                 FAQ
-              </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
-                Blog
               </Button>
             </Box>
           </Box>
@@ -116,12 +107,9 @@ export default function AppAppBar() {
                   </IconButton>
                 </Box>
 
-                <MenuItem>Features</MenuItem>
-                <MenuItem>Testimonials</MenuItem>
-                <MenuItem>Highlights</MenuItem>
-                <MenuItem>Pricing</MenuItem>
-                <MenuItem>FAQ</MenuItem>
-                <MenuItem>Blog</MenuItem>
+                <MenuItem><a href="#features" style={{ textDecoration: 'none', color: 'inherit' }}>Features</a></MenuItem>
+                <MenuItem><a href="#highlights" style={{ textDecoration: 'none', color: 'inherit' }}>Why Investo?</a></MenuItem>
+                <MenuItem><a href="#faq" style={{ textDecoration: 'none', color: 'inherit' }}>FAQ</a></MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
                   <Button color="primary" variant="contained" fullWidth>

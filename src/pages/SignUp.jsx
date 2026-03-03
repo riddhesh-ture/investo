@@ -1,21 +1,23 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import MuiLink from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from '../components/auth/CustomIcons';
+import { GoogleIcon, SitemarkIcon } from '../components/auth/CustomIcons';
+import { useAuth } from '../context/AuthContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -66,12 +68,17 @@ export default function SignUp(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  const [authError, setAuthError] = React.useState('');
+  const [successMsg, setSuccessMsg] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const { signUp: signUpFn, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const validateInputs = () => {
     const email = document.getElementById('email');
     const password = document.getElementById('password');
     const name = document.getElementById('name');
-
     let isValid = true;
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
@@ -100,22 +107,38 @@ export default function SignUp(props) {
       setNameError(false);
       setNameErrorMessage('');
     }
-
     return isValid;
   };
 
-  const handleSubmit = (event) => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    setSuccessMsg('');
+    if (!validateInputs()) return;
+
     const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get('name'),
-      lastName: data.get('lastName'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const name = data.get('name');
+    const email = data.get('email');
+    const password = data.get('password');
+
+    setLoading(true);
+    try {
+      await signUpFn(email, password, name);
+      navigate('/home');
+    } catch (err) {
+      setAuthError(err.message || 'Sign up failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      await signInWithGoogle();
+      navigate('/home');
+    } catch (err) {
+      setAuthError(err.message || 'Google sign up failed.');
+    }
   };
 
   return (
@@ -132,6 +155,16 @@ export default function SignUp(props) {
           >
             Sign up
           </Typography>
+          {authError && (
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {authError}
+            </Alert>
+          )}
+          {successMsg && (
+            <Alert severity="success" sx={{ width: '100%' }}>
+              {successMsg}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -163,7 +196,7 @@ export default function SignUp(props) {
                 variant="outlined"
                 error={emailError}
                 helperText={emailErrorMessage}
-                color={passwordError ? 'error' : 'primary'}
+                color={emailError ? 'error' : 'primary'}
               />
             </FormControl>
             <FormControl>
@@ -182,14 +215,14 @@ export default function SignUp(props) {
                 color={passwordError ? 'error' : 'primary'}
               />
             </FormControl>
-            
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              Sign up
+              {loading ? 'Creating account...' : 'Sign up'}
             </Button>
           </Box>
           <Divider>
@@ -199,23 +232,21 @@ export default function SignUp(props) {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert('Sign up with Google')}
+              onClick={handleGoogleSignUp}
               startIcon={<GoogleIcon />}
             >
               Sign up with Google
             </Button>
-            
             <Typography sx={{ textAlign: 'center' }}>
               Already have an account?{' '}
-              <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+              <MuiLink
+                component={RouterLink}
+                to="/signin"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
-                component={Link}
-                to="/signin"
               >
                 Sign in
-              </Link>
+              </MuiLink>
             </Typography>
           </Box>
         </Card>
