@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,14 +12,12 @@ const firebaseConfig = {
 
 let app = null;
 let auth = null;
-let db = null;
 
 // Only initialize if we have at least an API key
 if (firebaseConfig.apiKey) {
     try {
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        db = getFirestore(app);
     } catch (err) {
         console.warn('Firebase initialization failed:', err.message);
     }
@@ -30,5 +27,5 @@ if (firebaseConfig.apiKey) {
     );
 }
 
-export { auth, db };
+export { auth };
 export default app;
